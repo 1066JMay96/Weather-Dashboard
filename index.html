@@ -1,0 +1,155 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+  <title>Document</title>
+</head>
+
+<body>
+
+  <header class="jumbotron jumbotron-fluid bg-dark text-light px-2 text-center">
+    <h1 class="display-2">Weather Dashboard</h1>
+  </header>
+  <main class="container-fluid mb-5">
+    <div class="row">
+      <div class="col-12 col-md-4">
+        <div class="card mb-4">
+          <h4 class="card-header bg-dark text-light">
+            Search For City
+          </h4>
+          <form class="card-body" id="search-form">
+            <div class="form-group">
+              <input type="text" class="form-control" id="search-input" />
+            </div>
+            <button type="submit" id="find-weather" class="btn-block btn-outline-success">search</button>
+
+
+            <div class="card-body">
+              <div class="row" id="user-input">
+
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="col-12 col-md-8">
+        <div class="row">
+          <div class="col-12">
+            <div class="card">
+              <h4 class="card-header bg-dark text-light">Current Weather</h4>
+              <div class="card-body" id="search-results">
+                <div>City: <span class="City"></span></div>
+                <div>Temperature: <span class="temperature"></span></div>
+                <div> UV index: <span class="uv-index"></span></div>
+                <div>Humidity: <span class="humidity"></span></div>
+                <div>Wind Speed: <span class="wind-speed"></span></div>
+                <div> 5 day forecast: <span class="fiveDayforcast"></span></div>
+    
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <div class="card">
+              <h4 class="card-header bg-dark text-light">Forecast</h4>
+              <div class="card-body row" id="forecast-data">
+                
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+  </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript">
+    var APIkey = "93fa8ed0aed16ebe24ce760f53ef3bfb"
+
+
+
+    $("#find-weather").on("click", function (event) {
+      event.preventDefault();
+
+      var city = $("#search-input").val();
+
+
+      var queryURL = "https://api.openweathermap.org/data/2.5/weather?" +
+        "q=" + city + "&units=imperial&appid=" + APIkey;
+
+
+      $.ajax({
+        url: queryURL,
+        method: "GET"
+      }).then(function (response) {
+        console.log(response)
+        $(".city").html("<h1>" + response.name + " find-weather</h1>");
+        $(".wind-speed").text("Wind Speed: " + response.wind.speed);
+        $(".humidity").text("Humidity: " + response.main.humidity);
+        $(".temperature").text("Temperature (F) " + response.main.temp);
+        var latitiude = response.coord.lat
+        var longitude = response.coord.lon
+        // Converts the temp to Kelvin with the below formula
+        var tempF = (response.main.temp - 273.15) * 1.80 + 32;
+        $(".tempF").text("Temperature (Kelvin) " + tempF);
+
+        findUV(latitiude, longitude);
+        fiveDayforcast(city)
+      });
+
+    })
+
+    function findUV(lat, lon) {
+      var queryURL = "https://api.openweathermap.org/data/2.5/uvi?lat=" + lat + "&lon=" + lon + "&appid=" + APIkey;
+
+
+      $.ajax({
+        url: queryURL,
+        method: "GET"
+      }).then(function (response) {
+        console.log(response)
+        $(".uv-index").text(response.value)
+
+      });
+
+    }
+    function fiveDayforcast(city) {
+      var queryURL = "https://api.openweathermap.org/data/2.5/forecast?" +
+        "q=" + city + "&units=imperial&appid=" + APIkey;
+
+
+
+      $.ajax({
+        url: queryURL,
+        method: "GET"
+      }).then(function (response) {
+        console.log(response)
+        var fiveDayArr = response.list.filter(function (weatherObj) {
+          if (weatherObj.dt_txt.includes('06:00:00')) {
+            return true;
+          }
+          else {
+            return false;
+          }
+        });
+for (i = 0; i < fiveDayArr.length; i++) {
+   // create a div
+   // give that div a class of col-12 and col-md-2
+  var $div = $('<div class="col-12 col-md-2">');
+
+    $div.append(`<h4>Date: ${fiveDayArr[i].dt_txt}</h4>
+    <h4>Temp: ${fiveDayArr[i].main.temp}</h4>
+    `)
+
+    $("#forecast-data").append($div);
+
+}
+      })
+    }
+  </script>
+</body>
+
+</html>
